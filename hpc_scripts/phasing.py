@@ -347,11 +347,9 @@ class Rec:
         self.ds_image_raw = devlib.fft(self.rs_amplitudes)
 
     def er(self):
-        self.er_iter = True
         self.ds_image = self.ds_image_raw * self.support
 
     def hio(self):
-        self.er_iter = False
         combined_image = self.ds_image - self.ds_image_raw * self.params['hio_beta']
         self.ds_image = devlib.where((self.support > 0), self.ds_image_raw, combined_image)
 
@@ -402,49 +400,129 @@ class TeRec(Rec):
 
     """
 
-    def __init__(self, params, data_file, comm, pkg='cp'):
+    def __init__(self, params, data_file, pkg, comm):
         super().__init__(params, data_file, pkg)
 
+        self.comm = comm
         self.size = comm.Get_size()
         self.rank = comm.Get_rank()
         self.weight = .1
 
 
-    def er(self):
-        self.comm.Barrier()
-        if self.rank != 0:
-            self.comm.send(self.ds_image, dest=self.rank-1)
-        if self.rank != self.size -1:
-            ds_image_next = self.comm.recv(source=self.rank+1)
-        self.comm.Barrier()
-        if self.rank != self.size -1:
-            self.comm.send(self.ds_image, dest=self.rank+1)
-        if self.rank != 0:
-            ds_image_prev = self.comm.recv(source=self.rank-1)
+    def init_dev(self, device_id=-1):
+        import cupy as cp
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        if device_id != -1:
+            self.dev = device_id
+            if device_id != -1:
+                try:
+                    devlib.set_device(device_id)
+                except Exception as e:
+                    print(e)
+                    print('may need to restart GUI')
+                    return -1
+        print('devid', device_id, cp.cuda.runtime.getDevice())
 
-        if self.rank == 0 or self.rank == self.size - 1:
-            self.ds_image = self.ds_image_raw * self.support
+        if self.data_file.endswith('tif') or self.data_file.endswith('tiff'):
+            try:
+                data_np = ut.read_tif(self.data_file)
+                data = devlib.from_numpy(data_np)
+            except Exception as e:
+                print(e)
+                return -1
+        elif self.data_file.endswith('npy'):
+            try:
+                data = devlib.load(self.data_file)
+            except Exception as e:
+                print(e)
+                return -1
         else:
+            print('no data file found')
+            return -1
+        self.data = data
+        self.adjust_data()
+        # in the formatted data the max is in the center, we want it in the corner, so do fft shift
+        self.data = devlib.fftshift(devlib.absolute(self.data))
+        self.dims = devlib.dims(self.data)
+
+        if self.need_save_data:
+            self.saved_data = devlib.copy(self.data)
+            self.need_save_data = False
+
+        return 0
+
+
+    def adjust_data(self):
+        # broadcast the full size. Assuming the first scan is full data
+        shape = devlib.dims(self.data)
+        no_frames = shape[-1]
+        full_no_frames = self.comm.bcast(no_frames, root=0)
+        self.full_data = (no_frames == full_no_frames)
+        print('rank, full', self.rank, self.full_data)
+        # inflate data if not full
+        if not self.full_data:
+            fill_ratio = full_no_frames // no_frames
+            print('fill_ratio', fill_ratio)
+            # data = devlib.full((shape[0], shape[1], no_frames * (fill_ratio + 1)), 0.0)
+            data = devlib.full((shape[0], shape[1], full_no_frames), 0.0)
+            for i in range(no_frames):
+                data[:,:,i * fill_ratio] = self.data[:,:,i]
+            data[:,:,-1] = self.data[:,:,-1]
+            self.data = data
+        print('rank,shape', self.rank, self.data.shape)
+
+        # send to previous if full_data
+        if self.rank != 0:
+            self.comm.send(self.full_data, dest=self.rank-1)
+        if self.rank != self.size - 1:
+            next_full_data = self.comm.recv(source=self.rank+1)
+        # send to next if full_data
+        if self.rank != self.size - 1:
+            self.comm.send(self.full_data, dest=self.rank+1)
+        if self.rank != 0:
+            prev_full_data = self.comm.recv(source=self.rank-1)
+
+        # figure out if rank needs to send prev/next
+        self.send_to_prev = (self.rank > 0) and (not prev_full_data)
+        self.send_to_next = (self.rank < self.size - 1) and (not next_full_data)
+
+
+    def er(self):
+        if self.send_to_prev:
+            self.comm.send(self.ds_image, dest=self.rank - 1)
+        if not self.full_data:
+            ds_image_next = self.comm.recv(source=self.rank + 1)
+        if self.send_to_next:
+            self.comm.send(self.ds_image, dest=self.rank + 1)
+        if not self.full_data:
+            ds_image_prev = self.comm.recv(source=self.rank - 1)
+
+        if self.full_data:
+            # run the super er
+            self.ds_image = self.ds_image_raw * self.support
+
+        else:
+            # use previous and next to run modified er
             self.ds_image = (1/(1+2*self.weight)) * self.support * (self.ds_image_raw +
             self.weight * (ds_image_prev + ds_image_next))
 
 
     def hio(self):
-        self.comm.Barrier()
-        if self.rank > 1:
-            self.comm.send(self.ds_image, dest=self.rank-1)
-        if self.rank > 0 and self.rank != self.size - 1:
-            ds_image_next = self.comm.recv(source=self.rank+1)
-        self.comm.Barrier()
-        if self.rank < self.size - 2:
-            self.comm.send(self.ds_image, dest=self.rank+1)
-        if self.rank < self.size - 1 and self.rank != 0:
-            ds_image_prev = self.comm.recv(source=self.rank-1)
+        if self.send_to_prev:
+            self.comm.send(self.ds_image, dest=self.rank - 1)
+        if not self.full_data:
+            ds_image_next = self.comm.recv(source=self.rank + 1)
+        if self.send_to_next:
+            self.comm.send(self.ds_image, dest=self.rank + 1)
+        if not self.full_data:
+            ds_image_prev = self.comm.recv(source=self.rank - 1)
 
-        if self.rank == 0 or self.rank == self.size - 1:
+        if self.full_data:
+            # run the super hio
             combined_image = self.ds_image - self.ds_image_raw * self.params['hio_beta']
             self.ds_image = devlib.where((self.support > 0), self.ds_image_raw, combined_image)
         else:
+            # use previous and next to run modified hio
             combined_image = self.ds_image - self.ds_image_raw * self.params['hio_beta']
             corr = self.weight * self.support * (2 * (self.ds_image) - (ds_image_prev + ds_image_next))
             self.ds_image = devlib.where((self.support > 0), self.ds_image_raw, combined_image) - corr
@@ -453,26 +531,31 @@ class TeRec(Rec):
 def time_evolving_rec():
     import ast
     parser = argparse.ArgumentParser()
-    parser.add_argument("conf", help="conf")
-    parser.add_argument("datafile_dir", help="directory with datafiles")
+#    parser.add_argument("conf", help="conf")
+    parser.add_argument("exp_dir", help="directory with datafiles")
     args = parser.parse_args()
+    exp_dir = args.exp_dir
 
-    params = ut.read_config(args.conf)
+    dfiles = []
+    for scan_dir in os.listdir(exp_dir):
+        if scan_dir.startswith('scan'):
+            dfiles.append(ut.join(exp_dir, scan_dir, 'phasing_data', 'data.tif'))
+
+    conf = ut.join(exp_dir, 'conf', 'config_rec')
+    params = ut.read_config(conf)
     params['weight'] = 0.1
 
     comm = MPI.COMM_WORLD
-    size = comm.Get_size()
     rank = comm.Get_rank()
 
-    data_files = ast.literal_eval(args.datafile_dir)
-    datafile = data_files[rank]
-    worker = TeRec(params, datafile, comm)
+    # data_files = ast.literal_eval(args.datafile_dir)
+    datafile = dfiles[rank]
+    worker = TeRec(params, datafile, 'cp', comm)
+#    worker.adjust_data()
+#   comm.Barrier()
 
-#    worker.comm = comm
-#    worker.size = size
-#    worker.rank = rank
+    worker.init_dev(rank % 2)  # when running on Polaris no args, otherwise pass dev id
 
-    worker.init_dev()
     ret_code = worker.init_iter_loop()
     if ret_code < 0:
         print ('reconstruction failed, check algorithm sequence and triggers in configuration')
@@ -488,6 +571,7 @@ def time_evolving_rec():
     else:
         save_dir, filename = os.path.split(datafile)
         save_dir = save_dir.replace('phasing_data', 'results_phasing')
+    worker.save_res(save_dir)
 
 if __name__ == "__main__":
     exit(time_evolving_rec())
