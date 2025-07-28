@@ -71,6 +71,7 @@ venv.bak/
 .idea
 .DS_Store
 
-# etc
+# SJB777 personal gitignore
 pal_xfel_scripts/
 test_workspace/
+memo.md

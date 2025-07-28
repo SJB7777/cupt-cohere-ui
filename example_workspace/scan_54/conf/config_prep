@@ -1,0 +1,3 @@
+data_dir = "D:/02_Projects/Dev/PAL-XFEL/cupt-cohere-ui/example_data/AD34idcTIM2_example"
+darkfield_filename = "D:/02_Projects/Dev/PAL-XFEL/cupt-cohere-ui/example_data/dark.tif"
+whitefield_filename = "D:/02_Projects/Dev/PAL-XFEL/cupt-cohere-ui/example_data/whitefield.tif"

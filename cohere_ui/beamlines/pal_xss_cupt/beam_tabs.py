@@ -174,15 +174,15 @@ class PrepTab(QWidget):
                 self.dark_file_button.setText('')
         else:
             self.dark_file_button.setText('')
-        if 'Imult' in conf_map:
-            self.Imult.setText(str(conf_map['Imult']).replace(" ", ""))
-        if 'min_frames' in conf_map:
-            self.min_frames.setText(str(conf_map['min_frames']).replace(" ", ""))
-        if 'exclude_scans' in conf_map:
-            self.exclude_scans.setText(str(conf_map['exclude_scans']).replace(" ", ""))
-        self.remove_outliers.setChecked('remove_outliers' in conf_map and conf_map['remove_outliers'])
-        if 'outliers_scans' in conf_map:
-            self.outliers_scans.setText(str(conf_map['outliers_scans']).replace(" ", ""))
+        # if 'Imult' in conf_map:
+        #     self.Imult.setText(str(conf_map['Imult']).replace(" ", ""))
+        # if 'min_frames' in conf_map:
+        #     self.min_frames.setText(str(conf_map['min_frames']).replace(" ", ""))
+        # if 'exclude_scans' in conf_map:
+        #     self.exclude_scans.setText(str(conf_map['exclude_scans']).replace(" ", ""))
+        # self.remove_outliers.setChecked('remove_outliers' in conf_map and conf_map['remove_outliers'])
+        # if 'outliers_scans' in conf_map:
+        #     self.outliers_scans.setText(str(conf_map['outliers_scans']).replace(" ", ""))
         if 'roi' in conf_map:
             self.roi.setText(str(conf_map['roi']).replace(" ", ""))
             self.roi.setStyleSheet('color: black')
@@ -191,12 +191,12 @@ class PrepTab(QWidget):
     def clear_conf(self):
         self.data_dir_button.setText('')
         self.dark_file_button.setText('')
-        self.white_file_button.setText('')
-        self.Imult.setText('')
-        self.min_frames.setText('')
-        self.exclude_scans.setText('')
-        self.outliers_scans.setText('')
-        self.remove_outliers.setChecked(False)
+        # self.white_file_button.setText('')
+        # self.Imult.setText('')
+        # self.min_frames.setText('')
+        # self.exclude_scans.setText('')
+        # self.outliers_scans.setText('')
+        # self.remove_outliers.setChecked(False)
         self.roi.setText('')
 
 
@@ -237,17 +237,17 @@ class PrepTab(QWidget):
             conf_map['darkfield_filename'] = str(self.dark_file_button.text().strip())
         # if len(self.white_file_button.text().strip()) > 0:
         #     conf_map['whitefield_filename'] = str(self.white_file_button.text().strip())
-        if len(self.Imult.text()) > 0:
-            conf_map['Imult'] = ast.literal_eval(str(self.Imult.text()).replace(os.linesep,''))
-        if len(self.min_frames.text()) > 0:
-            min_frames = ast.literal_eval(str(self.min_frames.text()))
-            conf_map['min_frames'] = min_frames
-        if len(self.exclude_scans.text()) > 0:
-            conf_map['exclude_scans'] = ast.literal_eval(str(self.exclude_scans.text()).replace(os.linesep,''))
-        if self.remove_outliers.isChecked():
-            conf_map['remove_outliers'] = True
-        if len(self.roi.text()) > 0:
-            conf_map['roi'] = ast.literal_eval(str(self.roi.text()).replace(os.linesep,''))
+        # if len(self.Imult.text()) > 0:
+        #     conf_map['Imult'] = ast.literal_eval(str(self.Imult.text()).replace(os.linesep,''))
+        # if len(self.min_frames.text()) > 0:
+        #     min_frames = ast.literal_eval(str(self.min_frames.text()))
+        #     conf_map['min_frames'] = min_frames
+        # if len(self.exclude_scans.text()) > 0:
+        #     conf_map['exclude_scans'] = ast.literal_eval(str(self.exclude_scans.text()).replace(os.linesep,''))
+        # if self.remove_outliers.isChecked():
+        #     conf_map['remove_outliers'] = True
+        # if len(self.roi.text()) > 0:
+        #     conf_map['roi'] = ast.literal_eval(str(self.roi.text()).replace(os.linesep,''))
 
         return conf_map
 
