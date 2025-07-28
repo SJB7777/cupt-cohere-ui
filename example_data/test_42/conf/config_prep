@@ -1,0 +1,7 @@
+data_dir = "/path/to/raw/data"
+darkfield_filename = "/path/to/darkfield_file/dark.tif"
+whitefield_filename = "/path/to/whitefield_file/dark.tif"
+// roi = [0,256,0,256]
+// min_files = 80
+// exclude_scans = [78,81]
+// Imult = 10000

@@ -45,7 +45,8 @@ setuptools.setup(
                 'cohere_ui.beamlines.aps_34idc', 
                 'cohere_ui.beamlines.esrf_id01', 
                 'cohere_ui.beamlines.Petra3_P10', 
-                'cohere_ui.beamlines.simple'],
+                'cohere_ui.beamlines.simple',
+                'cohere_ui.beamlines.pal_xss_cupt'],
       install_requires=[
                          'pyqt5',
                          'scikit-image',

@@ -1,0 +1,5 @@
+working_dir = "D:/02_Projects/Dev/PAL-XFEL/cupt-cohere-ui/test_workspace"
+experiment_id = "hey"
+scan = "you"
+beamline = "pal_xss_cupt"
+converter_ver = 3

@@ -70,3 +70,6 @@ venv.bak/
 
 .idea
 .DS_Store
+
+# etc
+pal_xfel_scripts/*

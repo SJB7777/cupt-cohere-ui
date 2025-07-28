@@ -1,0 +1,8 @@
+// data_dir = "/path/to/dir/formatted_data/is/saved"
+alien_alg = "none"
+// aliens = [[170,220,112,195,245,123], [50,96,10,60,110,20]]
+// aliens = "/path/to/maskfile/maskfile"
+intensity_threshold = 20.0
+// adjust_dimensions = [-13, -13, -65, -65, -65, -65]
+// center_shift = [0,0,0]
+// binning = [1,1,1]

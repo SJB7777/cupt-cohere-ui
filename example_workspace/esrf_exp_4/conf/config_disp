@@ -1,1 +1,2 @@
-crop = [0.5, 0.5, 0.5]
+imcrop_fraction = [0.5, 0.5, 0.5]
+imcrop = "fraction"

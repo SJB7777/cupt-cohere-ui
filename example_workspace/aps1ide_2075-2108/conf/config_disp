@@ -1,2 +1,4 @@
-crop = [0.5, 0.5, 0.5]
-rampups = 1
+imcrop = "fraction"
+imcrop_fraction = [0.5, 0.5, 0.5]
+rampups = 1
+complex_mode = "AmpPhase"

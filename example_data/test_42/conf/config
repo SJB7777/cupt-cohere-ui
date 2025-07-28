@@ -1,0 +1,6 @@
+working_dir = "../example_data"
+experiment_id = "test"
+scan = "42"
+converter_ver = 3
+separate_scans = False
+separate_scan_ranges = False

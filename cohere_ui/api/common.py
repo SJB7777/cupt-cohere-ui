@@ -9,6 +9,7 @@ import os
 import cohere_core.utilities as ut
 import cohere_ui.api.convertconfig as conv
 
+from loguru import logger
 
 def get_config_maps(experiment_dir, configs, **kwargs):
     """
@@ -64,6 +65,7 @@ def get_config_maps(experiment_dir, configs, **kwargs):
             # return f'cannot import cohere_ui.beamlines.{beamline} module, exiting.', maps, None
         import importlib
         beam_ver = importlib.import_module(f'cohere_ui.beamlines.{beamline}.beam_verifier')
+        logger.info(beam_ver)
     else:
         beam_ver = None
 
