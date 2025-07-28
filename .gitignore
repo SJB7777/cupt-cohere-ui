@@ -72,4 +72,5 @@ venv.bak/
 .DS_Store
 
 # etc
-pal_xfel_scripts/*
+pal_xfel_scripts/
+test_workspace/
