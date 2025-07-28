@@ -29,7 +29,6 @@ import cohere_core.utilities as ut
 import cohere_ui.api.common as com
 import cohere_ui.api.convertconfig as conv
 
-from loguru import logger
 
 def select_file(start_dir):
     """
@@ -315,7 +314,6 @@ class cdi_gui(QWidget):
                 pass
         self.set_experiment(True)
         self.loaded = True
-        logger.info(f"{self.t=}")
         self.t.load_conf(conf_dicts)
 
         if not self.is_exp_set():
@@ -457,7 +455,6 @@ class cdi_gui(QWidget):
 
         if not loaded:
             self.save_main()
-            logger.info(f"{self.t}")
             self.t.save_conf()
 
         #self.t.notify(**{'experiment_dir': self.experiment_dir})
