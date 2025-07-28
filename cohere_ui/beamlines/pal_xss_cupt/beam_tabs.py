@@ -174,15 +174,6 @@ class PrepTab(QWidget):
                 self.dark_file_button.setText('')
         else:
             self.dark_file_button.setText('')
-        if 'whitefield_filename' in conf_map:
-            if os.path.isfile(conf_map['whitefield_filename']):
-                self.white_file_button.setStyleSheet("Text-align:left")
-                self.white_file_button.setText(conf_map['whitefield_filename'])
-            else:
-                self.white_file_button.setText('')
-                msg_window(f'The whitefield file {conf_map["whitefield_filename"]} in config_prep file does not exist')
-        else:
-            self.white_file_button.setText('')
         if 'Imult' in conf_map:
             self.Imult.setText(str(conf_map['Imult']).replace(" ", ""))
         if 'min_frames' in conf_map:
@@ -244,8 +235,8 @@ class PrepTab(QWidget):
             conf_map['data_dir'] = str(self.data_dir_button.text()).strip()
         if len(self.dark_file_button.text().strip()) > 0:
             conf_map['darkfield_filename'] = str(self.dark_file_button.text().strip())
-        if len(self.white_file_button.text().strip()) > 0:
-            conf_map['whitefield_filename'] = str(self.white_file_button.text().strip())
+        # if len(self.white_file_button.text().strip()) > 0:
+        #     conf_map['whitefield_filename'] = str(self.white_file_button.text().strip())
         if len(self.Imult.text()) > 0:
             conf_map['Imult'] = ast.literal_eval(str(self.Imult.text()).replace(os.linesep,''))
         if len(self.min_frames.text()) > 0:
@@ -286,7 +277,7 @@ class PrepTab(QWidget):
         if len(er_msg) > 0:
             msg_window(er_msg)
             if not self.main_win.no_verify:
-              return
+                return
 
         if 'remove_outliers' in conf_map and conf_map['remove_outliers']:
             # exclude outliers_scans from saving
@@ -326,23 +317,23 @@ class PrepTab(QWidget):
             self.dark_file_button.setText('')
 
 
-    def set_white_file(self):
-        """
-        It display a select dialog for user to select a whitefield file.
-        Parameters
-        ----------
-        none
-        Returns
-        -------
-        nothing
-        """
-        whitefield_filename = select_file(os.getcwd().replace(os.sep, '/'))
-        if whitefield_filename is not None:
-            whitefield_filename = whitefield_filename.replace(os.sep, '/')
-            self.white_file_button.setStyleSheet("Text-align:left")
-            self.white_file_button.setText(whitefield_filename)
-        else:
-            self.white_file_button.setText('')
+    # def set_white_file(self):
+    #     """
+    #     It display a select dialog for user to select a whitefield file.
+    #     Parameters
+    #     ----------
+    #     none
+    #     Returns
+    #     -------
+    #     nothing
+    #     """
+    #     whitefield_filename = select_file(os.getcwd().replace(os.sep, '/'))
+    #     if whitefield_filename is not None:
+    #         whitefield_filename = whitefield_filename.replace(os.sep, '/')
+    #         self.white_file_button.setStyleSheet("Text-align:left")
+    #         self.white_file_button.setText(whitefield_filename)
+    #     else:
+    #         self.white_file_button.setText('')
 
 
     def set_data_dir(self):
